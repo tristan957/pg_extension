@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# SPDX-FileCopyrightText: 2024 Tristan Partin <tristan@partin.io>
+
+comment = 'A Postgres extension template'
+default_version = '@VERSION@'
+module_pathname = '$libdir/@NAME@'
+relocateable = true
+superuser = false
+trusted = false

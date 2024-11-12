@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# SPDX-FileCopyrightText: 2024 Tristan Partin <tristan@partin.io>
+
+name: Build
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  normal:
+  sanitized:
