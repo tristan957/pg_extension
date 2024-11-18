@@ -8,6 +8,7 @@ SPDX-PackageName = "pg_extension"
 
 [[annotations]]
 path = [
+    "package.json",
     "VERSION",
 ]
 precedence = "override"
