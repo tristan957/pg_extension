@@ -1,7 +1,7 @@
 <!--
 SPDX-License-Identifier: CC0-1.0
 
-SPDX-FileCopyrightText: 2024 Tristan Partin <tristan@partin.io>
+SPDX-FileCopyrightText: Tristan Partin <tristan@partin.io>
 -->
 
 # `pg_extension`
