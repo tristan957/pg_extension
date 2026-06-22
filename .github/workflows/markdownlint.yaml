@@ -22,19 +22,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup node
-        uses: actions/setup-node@v6
-        with:
-          node-version: latest
-          cache: npm
-
-      - name: Checkout libmerr
+      - name: Checkout pg_extension
         uses: actions/checkout@v7
 
-      - name: Install dependencies
-        run: |
-          npm ci
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: markdownlint check
         run: |
-          npm run markdownlint:check
+          nix develop --command markdownlint-cli2 "**/*.md"
