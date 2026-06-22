@@ -33,13 +33,13 @@ permissions:
 jobs:
   codeql:
     runs-on: ubuntu-latest
-    container: quay.io/fedora/fedora:41
 
     steps:
       - name: Install dependencies
         run: |
-          dnf install --assumeyes --setopt=install_weak_deps=False \
-            gcc meson
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes \
+            gcc meson ninja-build postgresql-server-dev-16
 
       - name: Checkout libmerr
         uses: actions/checkout@v7
