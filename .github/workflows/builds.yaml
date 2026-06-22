@@ -44,6 +44,12 @@ jobs:
       fail-fast: true
       matrix:
         buildtype: [debug, release]
+        pg:
+          - 14
+          - 15
+          - 16
+          - 17
+          - 18
 
     steps:
       - name: Install dependencies
@@ -52,7 +58,7 @@ jobs:
             postgresql-common ca-certificates
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install --yes --no-install-recommends \
-            gcc meson ninja-build postgresql-server-dev-17
+            gcc meson ninja-build 'postgresql-server-dev-${{ matrix.pg }}'
 
       - name: Checkout pg_extension
         uses: actions/checkout@v7
@@ -70,12 +76,21 @@ jobs:
         uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: ${{ github.job }}-${{ matrix.buildtype }}
+          name: ${{ github.job }}-pg${{ matrix.pg }}-${{ matrix.buildtype }}
           path: |
             build/meson-logs/
 
   nix:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        pg:
+          - 14
+          - 15
+          - 16
+          - 17
+          - 18
 
     steps:
       - name: Checkout pg_extension
@@ -90,4 +105,4 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: Build
-        run: nix build
+        run: nix build .#postgresql_${{ matrix.pg }}

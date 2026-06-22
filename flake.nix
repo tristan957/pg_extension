@@ -18,10 +18,8 @@
   in {
     packages = forEachSystem (system: let
       pkgs = import nixpkgs {inherit system;};
-    in {
-      default = let
-        postgresql = pkgs.postgresql;
 
+      buildExtension = postgresql: let
         # Wrap pg_config so that --pkglibdir and --sharedir point into $out
         # rather than into the PostgreSQL store path. The meson.build uses
         # pg_config to determine where to install the .so and extension files,
@@ -59,6 +57,13 @@
             platforms = pkgs.lib.platforms.unix;
           };
         };
+    in {
+      default = buildExtension pkgs.postgresql_18;
+      postgresql_14 = buildExtension pkgs.postgresql_14;
+      postgresql_15 = buildExtension pkgs.postgresql_15;
+      postgresql_16 = buildExtension pkgs.postgresql_16;
+      postgresql_17 = buildExtension pkgs.postgresql_17;
+      postgresql_18 = buildExtension pkgs.postgresql_18;
     });
 
     devShells = forEachSystem (system: let
@@ -76,7 +81,7 @@
             ninja
             nixd
             pkgconf
-            postgresql
+            postgresql_18
             prettier
             reuse
             shellcheck
