@@ -41,7 +41,7 @@ jobs:
   meson:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         buildtype: [debug, release]
         pg:
@@ -59,6 +59,7 @@ jobs:
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install --yes --no-install-recommends \
             gcc meson ninja-build 'postgresql-server-dev-${{ matrix.pg }}'
+          echo '/usr/lib/postgresql/${{ matrix.pg }}/bin' >> "$GITHUB_PATH"
 
       - name: Checkout pg_extension
         uses: actions/checkout@v7
@@ -83,7 +84,7 @@ jobs:
   nix:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         pg:
           - 14
