@@ -7,6 +7,10 @@
 
 #include <fmgr.h>
 
+#if PG_MAJORVERSION_NUM <= 15
+void _PG_init(void);
+#endif
+
 void _PG_init(void)
 {
 }
