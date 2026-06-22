@@ -19,26 +19,46 @@
     packages = forEachSystem (system: let
       pkgs = import nixpkgs {inherit system;};
     in {
-      default = pkgs.postgresql.pkgs.buildPostgresqlExtension {
-        pname = "pg_extension";
-        version = pkgs.lib.trim (builtins.readFile ./VERSION);
+      default = let
+        postgresql = pkgs.postgresql;
 
-        src = ./.;
-
-        nativeBuildInputs = with pkgs; [
-          meson
-          muon
-          ninja
-          pkgconf
-        ];
-
-        meta = {
-          description = "A Postgres extension template";
-          homepage = "https://github.com/tristan957/pg_extension";
-          license = pkgs.lib.licenses.cc0;
-          platforms = pkgs.lib.platforms.unix;
+        # Wrap pg_config so that --pkglibdir and --sharedir point into $out
+        # rather than into the PostgreSQL store path. The meson.build uses
+        # pg_config to determine where to install the .so and extension files,
+        # so without this the build would try to write into the read-only
+        # PostgreSQL derivation.
+        pgConfigWrapper = pkgs.replaceVars ./nix/pg_config_wrapper.sh {
+          realPgConfig = "${postgresql.pg_config}/bin/pg_config";
         };
-      };
+      in
+        pkgs.stdenv.mkDerivation {
+          pname = "pg_extension";
+          version = pkgs.lib.trim (builtins.readFile ./VERSION);
+
+          src = ./.;
+
+          nativeBuildInputs = with pkgs; [
+            meson
+            ninja
+            pkg-config
+            postgresql.pg_config
+          ];
+
+          buildInputs = [postgresql.dev];
+
+          preConfigure = ''
+            mkdir -p "$TMPDIR/pg_config_wrap/bin"
+            install -m755 ${pgConfigWrapper} "$TMPDIR/pg_config_wrap/bin/pg_config"
+            export PATH="$TMPDIR/pg_config_wrap/bin:$PATH"
+          '';
+
+          meta = {
+            description = "A Postgres extension template";
+            homepage = "https://github.com/tristan957/pg_extension";
+            license = pkgs.lib.licenses.cc0;
+            platforms = pkgs.lib.platforms.unix;
+          };
+        };
     });
 
     devShells = forEachSystem (system: let
@@ -59,6 +79,8 @@
             postgresql
             prettier
             reuse
+            shellcheck
+            shfmt
           ]
           ++ pkgs.lib.optionals pkgs.stdenv.isLinux (with pkgs; [
             gcc

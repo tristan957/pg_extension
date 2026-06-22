@@ -59,17 +59,11 @@ add_project_arguments(
   language: 'c',
 )
 
-dirs = run_command(
-  pg_config,
-  '--includedir-server',
-  '--pkglibdir',
-  '--sharedir',
-  check: true,
-).stdout().strip().split('\n')
-
-includedir_server = include_directories(dirs[0])
-pkglibdir = dirs[1]
-sharedir = dirs[2] / 'extension'
+includedir_server = include_directories(
+  run_command(pg_config, '--includedir-server', check: true).stdout().strip()
+)
+pkglibdir = run_command(pg_config, '--pkglibdir', check: true).stdout().strip()
+sharedir = run_command(pg_config, '--sharedir', check: true).stdout().strip() / 'extension'
 
 configure_file(
   input: '@0@.control.in'.format(meson.project_name()),
