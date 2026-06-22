@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# SPDX-FileCopyrightText: Tristan Partin <tristan@partin.io>
+
+name: check-flake
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "**.nix"
+      - flake.lock
+      - .github/workflows/check-flake.yaml
+  push:
+    branches:
+      - master
+      - "v[0-9]+.[0-9]+"
+    paths:
+      - "**.nix"
+      - flake.lock
+      - .github/workflows/check-flake.yaml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-flake:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout pg_extension
+        uses: actions/checkout@v7
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@v14
+
+      - name: Check flake
+        run: nix flake check

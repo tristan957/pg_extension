@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# SPDX-FileCopyrightText: Tristan Partin <tristan@partin.io>
+
+name: shfmt
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "**.sh"
+      - .github/workflows/shfmt.yaml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  shfmt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout pg_extension
+        uses: actions/checkout@v7
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@v14
+
+      - name: shfmt
+        run: nix develop --command scripts/shfmt.sh

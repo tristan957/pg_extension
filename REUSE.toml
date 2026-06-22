@@ -3,6 +3,7 @@ version = 1
 [[annotations]]
 path = [
     "flake.lock",
+    "nix/pg_config_wrapper.sh",
     "VERSION",
 ]
 precedence = "aggregate"

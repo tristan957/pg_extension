@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# SPDX-FileCopyrightText: Tristan Partin <tristan@partin.io>
+
+name: alejandra
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "**.nix"
+      - .github/workflows/alejandra.yaml
+  push:
+    branches:
+      - master
+      - "v[0-9]+.[0-9]+"
+    paths:
+      - "**.nix"
+      - .github/workflows/alejandra.yaml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  alejandra:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout pg_extension
+        uses: actions/checkout@v7
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@v14
+
+      - name: Check formatting
+        run: nix run nixpkgs#alejandra -- --check .
