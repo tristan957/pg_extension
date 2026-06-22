@@ -1,15 +1,34 @@
 # SPDX-License-Identifier: CC0-1.0
 #
-# SPDX-FileCopyrightText: 2024 Tristan Partin <tristan@partin.io>
+# SPDX-FileCopyrightText: Tristan Partin <tristan@partin.io>
 
-name: Build
+name: Builds
 
 on:
   pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
+    types: [opened, synchronize, reopened]
+    paths:
+      - "**.c"
+      - "**.h"
+      - "**.nix"
+      - "**/meson.build"
+      - .github/workflows/builds.yaml
+      - flake.lock
+      - nix/pg_config_wrapper.sh
+      - VERSION
+  push:
+    branches:
+      - master
+      - "v[0-9]+.[0-9]+"
+    paths:
+      - "**.c"
+      - "**.h"
+      - "**.nix"
+      - "**/meson.build"
+      - .github/workflows/builds.yaml
+      - flake.lock
+      - nix/pg_config_wrapper.sh
+      - VERSION
 
 permissions:
   contents: read
@@ -19,5 +38,56 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  normal:
-  sanitized:
+  meson:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        buildtype: [debug, release]
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get install --yes --no-install-recommends \
+            postgresql-common ca-certificates
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install --yes --no-install-recommends \
+            gcc meson ninja-build postgresql-server-dev-17
+
+      - name: Checkout pg_extension
+        uses: actions/checkout@v7
+
+      - name: Setup
+        run: |
+          meson setup build --fatal-meson-warnings --werror \
+            --buildtype='${{ matrix.buildtype }}'
+
+      - name: Build
+        run: |
+          ninja -C build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: ${{ github.job }}-${{ matrix.buildtype }}
+          path: |
+            build/meson-logs/
+
+  nix:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout pg_extension
+        uses: actions/checkout@v7
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@v14
+
+      - name: Build
+        run: nix build
