@@ -11,6 +11,7 @@
 void _PG_init(void);
 #endif
 
-void _PG_init(void)
+void
+_PG_init(void)
 {
 }
